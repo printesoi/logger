@@ -17,6 +17,10 @@ type Config struct {
 	UTC            bool
 	SkipPath       []string
 	SkipPathRegexp *regexp.Regexp
+
+	// Additional context fields to be logged. The functions must return 2
+	// values: the key and the value for the log context.
+	ContextFieldFuns []func(*gin.Context) (string, string)
 }
 
 // SetLogger initializes the logging middleware.
@@ -73,14 +77,17 @@ func SetLogger(config ...Config) gin.HandlerFunc {
 				msg = c.Errors.String()
 			}
 
-			dumplogger := sublog.With().
+			subCtx := sublog.With().
 				Int("status", c.Writer.Status()).
 				Str("method", c.Request.Method).
 				Str("path", path).
 				Str("ip", c.ClientIP()).
 				Dur("latency", latency).
-				Str("user-agent", c.Request.UserAgent()).
-				Logger()
+				Str("user-agent", c.Request.UserAgent())
+			for _, f := range newConfig.ContextFieldFuns {
+				subCtx = subCtx.Str(f(c))
+			}
+			dumplogger := subCtx.Logger()
 
 			switch {
 			case c.Writer.Status() >= http.StatusBadRequest && c.Writer.Status() < http.StatusInternalServerError:
