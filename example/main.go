@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"regexp"
 	"time"
 
-	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/printesoi/logger"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -50,7 +51,7 @@ func main() {
 
 	// Example ping request.
 	r.GET("/ping", func(c *gin.Context) {
-		c.String(, "pong "+fmt.Sprint(time.Now().Unix()))
+		c.String(http.StatusOK, "pong "+fmt.Sprint(time.Now().Unix()))
 	})
 
 	// Example skip path request.
